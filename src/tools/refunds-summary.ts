@@ -17,7 +17,7 @@ export function registerRefundsSummary(server: McpServer) {
         const dateClause = periodToClause(period ?? "last_30d");
 
         if (group_by === "product") {
-          const query = `FROM sales SHOW product_title, sales_reversals, units_sold GROUP BY product_title HAVING sales_reversals > 0 ${dateClause} ORDER BY sales_reversals DESC`;
+          const query = `FROM sales SHOW product_title, returns, orders GROUP BY product_title HAVING returns > 0 ${dateClause} ORDER BY returns DESC`;
 
           const result = await runShopifyQL(query);
           const rows = tableToObjects(result);
@@ -30,7 +30,7 @@ export function registerRefundsSummary(server: McpServer) {
           }
 
           const top = rows[0];
-          const summary = `${rows.length} products had refunds (${period ?? "last 30 days"}). Highest: "${top.product_title}" with ${formatMoney(Math.abs(top.sales_reversals as number))} in refunds.`;
+          const summary = `${rows.length} products had refunds (${period ?? "last 30 days"}). Highest: "${top.product_title}" with ${formatMoney(Math.abs(top.returns as number))} in refunds.`;
 
           return toolResult({
             summary,
@@ -39,7 +39,7 @@ export function registerRefundsSummary(server: McpServer) {
         }
 
         // Aggregate refund summary
-        const query = `FROM sales SHOW total_sales, net_sales, sales_reversals, orders ${dateClause} WITH TOTALS`;
+        const query = `FROM sales SHOW total_sales, net_sales, returns, orders ${dateClause} WITH TOTALS`;
 
         const result = await runShopifyQL(query);
         const rows = tableToObjects(result);
@@ -54,7 +54,7 @@ export function registerRefundsSummary(server: McpServer) {
         const totals = rows[rows.length - 1];
         const totalSales = (totals.total_sales as number) ?? 0;
         const netSales = (totals.net_sales as number) ?? 0;
-        const refunds = Math.abs((totals.sales_reversals as number) ?? 0);
+        const refunds = Math.abs((totals.returns as number) ?? 0);
         const refundRate = totalSales > 0 ? (refunds / totalSales) * 100 : 0;
 
         const summary = `Refund summary (${period ?? "last 30 days"}): ${formatMoney(refunds)} in refunds (${refundRate.toFixed(1)}% of ${formatMoney(totalSales)} total sales). Net sales: ${formatMoney(netSales)}.`;

@@ -25,15 +25,15 @@ export function registerCustomerInsights(server: McpServer) {
         const totalSales = (totals?.total_sales as number) ?? 0;
         const totalCustomers = (totals?.customers as number) ?? 0;
 
-        // Top spenders
-        const topSpendersQuery = `FROM customers SHOW customer_name, customer_email, total_orders, total_amount_spent ORDER BY total_amount_spent DESC LIMIT 10`;
+        // Top spenders — use sales table grouped by customer
+        const topSpendersQuery = `FROM sales SHOW customer_name, customer_email, total_sales, orders GROUP BY customer_name, customer_email ${dateClause} ORDER BY total_sales DESC LIMIT 10`;
 
         let topSpenders: Record<string, unknown>[] = [];
         try {
           const spendersResult = await runShopifyQL(topSpendersQuery);
           topSpenders = tableToObjects(spendersResult);
         } catch {
-          // customers dataset may not be available on all plans
+          // may not be available on all plans
         }
 
         const avgOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
@@ -42,7 +42,7 @@ export function registerCustomerInsights(server: McpServer) {
 
         if (topSpenders.length > 0) {
           const top = topSpenders[0];
-          summary += ` Top spender: ${top.customer_name} (${formatMoney(top.total_amount_spent as number)}).`;
+          summary += ` Top spender: ${top.customer_name} (${formatMoney(top.total_sales as number)}).`;
         }
 
         return toolResult({

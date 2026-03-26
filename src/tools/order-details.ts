@@ -21,7 +21,7 @@ interface OrderSearchResponse {
       displayFulfillmentStatus: string;
       note: string | null;
       tags: string[];
-      customer: { displayName: string; email: string; ordersCount: string } | null;
+      customer: { displayName: string; email: string; numberOfOrders: string } | null;
       shippingAddress: { formatted: string[] } | null;
       billingAddress: { formatted: string[] } | null;
       lineItems: {
@@ -87,7 +87,7 @@ export function registerOrderDetails(server: McpServer) {
                 displayFulfillmentStatus
                 note
                 tags
-                customer { displayName email ordersCount }
+                customer { displayName email numberOfOrders }
                 shippingAddress { formatted }
                 billingAddress { formatted }
                 lineItems(first: 50) {
@@ -155,7 +155,7 @@ export function registerOrderDetails(server: McpServer) {
           note: o.note,
           tags: o.tags,
           customer: o.customer
-            ? { name: o.customer.displayName, email: o.customer.email, total_orders: o.customer.ordersCount }
+            ? { name: o.customer.displayName, email: o.customer.email, total_orders: o.customer.numberOfOrders }
             : null,
           shipping_address: o.shippingAddress?.formatted.join(", ") ?? null,
           billing_address: o.billingAddress?.formatted.join(", ") ?? null,

@@ -1,6 +1,6 @@
 {
   "name": "@scooperai/shopify-analytics-mcp",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "type": "module",
   "description": "Free Shopify analytics MCP server for Claude Desktop. Ask questions about your orders, products, customers, and inventory in natural language.",
   "bin": {

@@ -20,7 +20,7 @@ export function registerProductPerformance(server: McpServer) {
         const withClause = cmpClause ? "WITH PERCENT_CHANGE" : "";
         const whereClause = product_title ? `WHERE product_title LIKE '%${product_title.replace(/'/g, "\\'")}%'` : "";
 
-        const query = `FROM sales SHOW product_title, total_sales, net_sales, units_sold, orders, average_order_value GROUP BY product_title ${whereClause} ${dateClause} ${cmpClause} ${withClause} ORDER BY total_sales DESC`.trim();
+        const query = `FROM sales SHOW product_title, total_sales, net_sales, orders, average_order_value GROUP BY product_title ${whereClause} ${dateClause} ${cmpClause} ${withClause} ORDER BY total_sales DESC`.trim();
 
         const result = await runShopifyQL(query);
         const rows = tableToObjects(result);
@@ -36,7 +36,7 @@ export function registerProductPerformance(server: McpServer) {
 
         const topProduct = rows[0];
         const summary = product_title
-          ? `Performance for "${product_title}": ${formatMoney(topProduct.total_sales as number)} revenue, ${topProduct.units_sold} units sold, ${topProduct.orders} orders (${period ?? "last 30 days"}).`
+          ? `Performance for "${product_title}": ${formatMoney(topProduct.total_sales as number)} revenue, ${topProduct.orders} orders (${period ?? "last 30 days"}).`
           : `${rows.length} products found. Top: ${topProduct.product_title} at ${formatMoney(topProduct.total_sales as number)} (${period ?? "last 30 days"}).`;
 
         return toolResult({

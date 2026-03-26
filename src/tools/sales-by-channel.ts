@@ -18,7 +18,7 @@ export function registerSalesByChannel(server: McpServer) {
         const cmpClause = compareToClause(compare_to);
         const withClause = cmpClause ? "WITH PERCENT_CHANGE" : "";
 
-        const query = `FROM sales SHOW channel, total_sales, orders, average_order_value GROUP BY channel ${dateClause} ${cmpClause} ${withClause} ORDER BY total_sales DESC`.trim();
+        const query = `FROM sales SHOW sales_channel, total_sales, orders, average_order_value GROUP BY sales_channel ${dateClause} ${cmpClause} ${withClause} ORDER BY total_sales DESC`.trim();
 
         const result = await runShopifyQL(query);
         const rows = tableToObjects(result);
@@ -31,7 +31,7 @@ export function registerSalesByChannel(server: McpServer) {
         }
 
         const channelLines = rows.map((r) => {
-          const name = r.channel as string;
+          const name = r.sales_channel as string;
           const sales = r.total_sales as number;
           const orders = r.orders as number;
           return `${name}: ${formatMoney(sales)} (${orders} orders)`;

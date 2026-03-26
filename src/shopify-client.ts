@@ -12,7 +12,7 @@ interface GraphQLResponse<T = Record<string, unknown>> {
 
 interface ShopifyQLTableData {
   columns: Array<{ name: string; dataType: string; displayName: string }>;
-  rows: unknown[][];
+  rows: unknown;
 }
 
 interface ShopifyQLResponse {
@@ -24,7 +24,7 @@ interface ShopifyQLResponse {
 
 export interface ShopifyQLResult {
   columns: Array<{ name: string; dataType: string; displayName: string }>;
-  rows: unknown[][];
+  rows: unknown[];
 }
 
 async function makeRequest<T>(
@@ -117,11 +117,12 @@ export async function runShopifyQL(query: string): Promise<ShopifyQLResult> {
     );
   }
 
-  if (!tableData || tableData.rows.length === 0) {
+  const rows = tableData?.rows as unknown[] | null;
+  if (!tableData || !rows || rows.length === 0) {
     return { columns: tableData?.columns ?? [], rows: [] };
   }
 
-  return { columns: tableData.columns, rows: tableData.rows };
+  return { columns: tableData.columns, rows };
 }
 
 export async function graphql<T = Record<string, unknown>>(

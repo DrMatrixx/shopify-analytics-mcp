@@ -22,7 +22,7 @@ export function registerSalesSummary(server: McpServer) {
         const cmpClause = compareToClause(compare_to ?? "previous_period");
         const withClauses = cmpClause ? "WITH TOTALS, PERCENT_CHANGE" : "WITH TOTALS";
 
-        const query = `FROM sales SHOW total_sales, net_sales, orders, average_order_value, taxes, shipping, discounts, sales_reversals ${dateClause} ${cmpClause} ${withClauses}`.trim();
+        const query = `FROM sales SHOW total_sales, net_sales, gross_sales, orders, average_order_value, taxes, discounts, returns ${dateClause} ${cmpClause} ${withClauses}`.trim();
 
         const result = await runShopifyQL(query);
         const rows = tableToObjects(result);
@@ -39,25 +39,25 @@ export function registerSalesSummary(server: McpServer) {
         const current = rows[rows.length - 1] as Record<string, unknown>;
         const totalSales = (current.total_sales as number) ?? 0;
         const netSales = (current.net_sales as number) ?? 0;
+        const grossSales = (current.gross_sales as number) ?? 0;
         const orders = (current.orders as number) ?? 0;
         const aov = (current.average_order_value as number) ?? 0;
         const taxes = (current.taxes as number) ?? 0;
-        const shippingVal = (current.shipping as number) ?? 0;
         const discounts = (current.discounts as number) ?? 0;
-        const refunds = (current.sales_reversals as number) ?? 0;
+        const returns = (current.returns as number) ?? 0;
 
-        let summary = `${period ?? "Last 7 days"}: ${formatMoney(totalSales)} revenue from ${formatNumber(orders)} orders (AOV ${formatMoney(aov)}). Net revenue after refunds/discounts: ${formatMoney(netSales)}.`;
+        let summary = `${period ?? "Last 7 days"}: ${formatMoney(totalSales)} revenue from ${formatNumber(orders)} orders (AOV ${formatMoney(aov)}). Net revenue after returns/discounts: ${formatMoney(netSales)}.`;
 
         const data: Record<string, unknown> = {
           period: period ?? "last_7d",
           total_sales: totalSales,
           net_sales: netSales,
+          gross_sales: grossSales,
           orders,
           average_order_value: aov,
           taxes,
-          shipping: shippingVal,
           discounts,
-          refunds,
+          returns,
           raw_rows: rows,
         };
 

@@ -12,9 +12,26 @@ export function tableToObjects(
   result: ShopifyQLResult
 ): Record<string, unknown>[] {
   return result.rows.map((row) => {
+    // Rows can be objects (keyed by column name) or arrays (positional)
+    if (row && typeof row === "object" && !Array.isArray(row)) {
+      const rowObj = row as Record<string, unknown>;
+      const obj: Record<string, unknown> = {};
+      for (const col of result.columns) {
+        obj[col.name] = parseValue(rowObj[col.name], col.dataType);
+      }
+      // Also include any extra keys (e.g. comparison/percent_change columns)
+      for (const key of Object.keys(rowObj)) {
+        if (!(key in obj)) {
+          obj[key] = rowObj[key];
+        }
+      }
+      return obj;
+    }
+    // Array-based rows (legacy/fallback)
+    const arr = row as unknown[];
     const obj: Record<string, unknown> = {};
     result.columns.forEach((col, i) => {
-      obj[col.name] = parseValue(row[i], col.dataType);
+      obj[col.name] = parseValue(arr[i], col.dataType);
     });
     return obj;
   });
@@ -26,7 +43,8 @@ export function tableToObjects(
 function parseValue(value: unknown, dataType: string): unknown {
   if (value === null || value === undefined) return null;
 
-  if (dataType === "money" || dataType === "number" || dataType === "float" || dataType === "integer" || dataType === "percent") {
+  const dt = dataType.toLowerCase();
+  if (dt === "money" || dt === "number" || dt === "float" || dt === "integer" || dt === "percent") {
     if (typeof value === "string") {
       // Strip currency symbols, commas, percent signs
       const cleaned = value.replace(/[$€£¥,% ]/g, "");
@@ -42,15 +60,17 @@ function parseValue(value: unknown, dataType: string): unknown {
 /**
  * Format a number as currency string.
  */
-export function formatMoney(amount: number): string {
-  return `$${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+export function formatMoney(amount: unknown): string {
+  const n = Number(amount) || 0;
+  return `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 /**
  * Format a number with commas.
  */
-export function formatNumber(n: number): string {
-  return n.toLocaleString("en-US");
+export function formatNumber(n: unknown): string {
+  const num = Number(n) || 0;
+  return num.toLocaleString("en-US");
 }
 
 /**
