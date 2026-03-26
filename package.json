@@ -1,0 +1,39 @@
+{
+  "name": "@scooperai/shopify-analytics-mcp",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Free Shopify analytics MCP server for Claude Desktop. Ask questions about your orders, products, customers, and inventory in natural language.",
+  "bin": {
+    "shopify-analytics-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc && chmod 755 dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "shopify",
+    "mcp",
+    "analytics",
+    "claude",
+    "ai",
+    "ecommerce",
+    "model-context-protocol",
+    "shopifyql"
+  ],
+  "author": "Scooper AI <hello@scooperai.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/scooperai/shopify-analytics-mcp"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "latest",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}
