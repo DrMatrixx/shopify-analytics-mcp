@@ -45,6 +45,32 @@ Replace the three values with your own. `SHOPIFY_STORE` is the subdomain from `y
 
 Restart Claude Desktop. Done.
 
+#### Already have other MCP servers?
+
+If your config already has other servers, add `shopify-analytics` alongside them inside the existing `mcpServers` block (don't create a second one):
+
+```json
+{
+  "mcpServers": {
+    "some-other-mcp": {
+      "command": "npx",
+      "args": ["-y", "some-other-mcp"]
+    },
+    "shopify-analytics": {
+      "command": "npx",
+      "args": ["-y", "@scooperai/shopify-analytics-mcp"],
+      "env": {
+        "SHOPIFY_STORE": "your-store-subdomain",
+        "SHOPIFY_CLIENT_ID": "your-client-id",
+        "SHOPIFY_CLIENT_SECRET": "your-client-secret"
+      }
+    }
+  }
+}
+```
+
+Just add a comma after the existing server's closing `}` and paste the `"shopify-analytics"` block after it.
+
 ### Legacy Auth (existing custom apps)
 
 If you have an existing custom app with a `shpat_` access token:
