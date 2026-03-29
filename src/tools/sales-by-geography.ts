@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { runShopifyQL } from "../shopify-client.js";
+import { runShopifyQL, getStoreCurrency } from "../shopify-client.js";
 import { periodToClause, geographyGroupBy } from "../utils/shopifyql-helpers.js";
 import { tableToObjects, formatMoney, toolResult, toolError } from "../utils/formatters.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -21,7 +21,7 @@ export function registerSalesByGeography(server: McpServer) {
 
         const query = `FROM sales SHOW ${geoField}, total_sales, orders, average_order_value GROUP BY ${geoField} ${dateClause} ORDER BY total_sales DESC LIMIT ${cap}`;
 
-        const result = await runShopifyQL(query);
+        const [result, currency] = await Promise.all([runShopifyQL(query), getStoreCurrency()]);
         const rows = tableToObjects(result);
 
         if (rows.length === 0) {
@@ -34,7 +34,7 @@ export function registerSalesByGeography(server: McpServer) {
         const top3 = rows.slice(0, 3).map((r, i) => {
           const name = r[geoField] as string;
           const sales = r.total_sales as number;
-          return `${i + 1}. ${name} (${formatMoney(sales)})`;
+          return `${i + 1}. ${name} (${formatMoney(sales, currency)})`;
         });
 
         const summary = `Sales by ${group_by ?? "country"} (${period ?? "last 30 days"}):\n${top3.join("\n")}${rows.length > 3 ? `\n...and ${rows.length - 3} more` : ""}`;

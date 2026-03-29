@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { runShopifyQL } from "../shopify-client.js";
+import { runShopifyQL, getStoreCurrency } from "../shopify-client.js";
 import { periodToClause } from "../utils/shopifyql-helpers.js";
 import { tableToObjects, formatMoney, formatNumber, toolResult, toolError } from "../utils/formatters.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -16,6 +16,8 @@ export function registerCustomerInsights(server: McpServer) {
         const dateClause = periodToClause(period ?? "last_30d");
 
         // Aggregate customer metrics from sales
+        const currency = await getStoreCurrency();
+
         const aggregateQuery = `FROM sales SHOW orders, total_sales, customers ${dateClause} WITH TOTALS`;
         const aggregateResult = await runShopifyQL(aggregateQuery);
         const aggregateRows = tableToObjects(aggregateResult);
@@ -38,11 +40,11 @@ export function registerCustomerInsights(server: McpServer) {
 
         const avgOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
 
-        let summary = `Customer insights (${period ?? "last 30 days"}): ${formatNumber(totalCustomers)} customers, ${formatNumber(totalOrders)} orders, ${formatMoney(totalSales)} total revenue (AOV ${formatMoney(avgOrderValue)}).`;
+        let summary = `Customer insights (${period ?? "last 30 days"}): ${formatNumber(totalCustomers)} customers, ${formatNumber(totalOrders)} orders, ${formatMoney(totalSales, currency)} total revenue (AOV ${formatMoney(avgOrderValue, currency)}).`;
 
         if (topSpenders.length > 0) {
           const top = topSpenders[0];
-          summary += ` Top spender: ${top.customer_name} (${formatMoney(top.total_sales as number)}).`;
+          summary += ` Top spender: ${top.customer_name} (${formatMoney(top.total_sales, currency)}).`;
         }
 
         return toolResult({

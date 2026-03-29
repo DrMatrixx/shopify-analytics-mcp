@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { graphql } from "../shopify-client.js";
+import { graphql, getStoreCurrency } from "../shopify-client.js";
 import { formatMoney, toolResult, toolError } from "../utils/formatters.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -57,7 +57,7 @@ export function registerSearchOrders(server: McpServer) {
           }
         `;
 
-        const data = await graphql<OrdersResponse>(gql);
+        const [data, currency] = await Promise.all([graphql<OrdersResponse>(gql), getStoreCurrency()]);
         const orders = data.orders.nodes;
 
         if (orders.length === 0) {
@@ -68,7 +68,7 @@ export function registerSearchOrders(server: McpServer) {
         }
 
         const orderLines = orders.slice(0, 5).map((o) => {
-          const amount = formatMoney(Number(o.totalPriceSet.shopMoney.amount));
+          const amount = formatMoney(Number(o.totalPriceSet.shopMoney.amount), currency);
           const customer = o.customer?.displayName ?? "Guest";
           return `${o.name}: ${amount} — ${customer} (${o.displayFinancialStatus})`;
         });

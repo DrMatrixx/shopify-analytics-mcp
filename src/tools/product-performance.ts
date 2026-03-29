@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { runShopifyQL } from "../shopify-client.js";
+import { runShopifyQL, getStoreCurrency } from "../shopify-client.js";
 import { periodToClause, compareToClause } from "../utils/shopifyql-helpers.js";
 import { tableToObjects, formatMoney, toolResult, toolError } from "../utils/formatters.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -22,7 +22,7 @@ export function registerProductPerformance(server: McpServer) {
 
         const query = `FROM sales SHOW product_title, total_sales, net_sales, orders, average_order_value GROUP BY product_title ${whereClause} ${dateClause} ${cmpClause} ${withClause} ORDER BY total_sales DESC`.trim();
 
-        const result = await runShopifyQL(query);
+        const [result, currency] = await Promise.all([runShopifyQL(query), getStoreCurrency()]);
         const rows = tableToObjects(result);
 
         if (rows.length === 0) {
@@ -36,8 +36,8 @@ export function registerProductPerformance(server: McpServer) {
 
         const topProduct = rows[0];
         const summary = product_title
-          ? `Performance for "${product_title}": ${formatMoney(topProduct.total_sales as number)} revenue, ${topProduct.orders} orders (${period ?? "last 30 days"}).`
-          : `${rows.length} products found. Top: ${topProduct.product_title} at ${formatMoney(topProduct.total_sales as number)} (${period ?? "last 30 days"}).`;
+          ? `Performance for "${product_title}": ${formatMoney(topProduct.total_sales, currency)} revenue, ${topProduct.orders} orders (${period ?? "last 30 days"}).`
+          : `${rows.length} products found. Top: ${topProduct.product_title} at ${formatMoney(topProduct.total_sales, currency)} (${period ?? "last 30 days"}).`;
 
         return toolResult({
           summary,

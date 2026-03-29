@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { runShopifyQL } from "../shopify-client.js";
+import { runShopifyQL, getStoreCurrency } from "../shopify-client.js";
 import { periodToClause } from "../utils/shopifyql-helpers.js";
 import { tableToObjects, formatMoney, toolResult, toolError } from "../utils/formatters.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -21,7 +21,7 @@ export function registerDiscountPerformance(server: McpServer) {
 
         const query = `FROM sales SHOW discount_code, total_sales, orders, discounts, average_order_value GROUP BY discount_code ${whereClause} ${dateClause} ORDER BY orders DESC LIMIT 20`.trim();
 
-        const result = await runShopifyQL(query);
+        const [result, currency] = await Promise.all([runShopifyQL(query), getStoreCurrency()]);
         const rows = tableToObjects(result);
 
         if (rows.length === 0) {
@@ -35,8 +35,8 @@ export function registerDiscountPerformance(server: McpServer) {
 
         const top = rows[0];
         const summary = discount_code
-          ? `Discount "${discount_code}": ${formatMoney(top.total_sales as number)} revenue from ${top.orders} orders, ${formatMoney(top.discounts as number)} in discounts given (${period ?? "last 30 days"}).`
-          : `${rows.length} discount codes used (${period ?? "last 30 days"}). Top: "${top.discount_code}" with ${top.orders} orders generating ${formatMoney(top.total_sales as number)}.`;
+          ? `Discount "${discount_code}": ${formatMoney(top.total_sales, currency)} revenue from ${top.orders} orders, ${formatMoney(top.discounts, currency)} in discounts given (${period ?? "last 30 days"}).`
+          : `${rows.length} discount codes used (${period ?? "last 30 days"}). Top: "${top.discount_code}" with ${top.orders} orders generating ${formatMoney(top.total_sales, currency)}.`;
 
         return toolResult({
           summary,

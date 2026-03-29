@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { runShopifyQL } from "../shopify-client.js";
+import { runShopifyQL, getStoreCurrency } from "../shopify-client.js";
 import { periodToClause, compareToClause, granularityToClause } from "../utils/shopifyql-helpers.js";
 import { tableToObjects, formatMoney, formatNumber, toolResult, toolError } from "../utils/formatters.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -21,7 +21,7 @@ export function registerOrderTrends(server: McpServer) {
 
         const query = `FROM sales SHOW total_sales, orders, average_order_value ${timeClause} ${dateClause} ${cmpClause}`.trim();
 
-        const result = await runShopifyQL(query);
+        const [result, currency] = await Promise.all([runShopifyQL(query), getStoreCurrency()]);
         const rows = tableToObjects(result);
 
         if (rows.length === 0) {
@@ -34,7 +34,7 @@ export function registerOrderTrends(server: McpServer) {
         const totalSales = rows.reduce((sum, r) => sum + ((r.total_sales as number) ?? 0), 0);
         const totalOrders = rows.reduce((sum, r) => sum + ((r.orders as number) ?? 0), 0);
 
-        const summary = `${granularity ?? "Daily"} trends for ${period ?? "last 30 days"}: ${rows.length} data points. Total: ${formatMoney(totalSales)} from ${formatNumber(totalOrders)} orders.`;
+        const summary = `${granularity ?? "Daily"} trends for ${period ?? "last 30 days"}: ${rows.length} data points. Total: ${formatMoney(totalSales, currency)} from ${formatNumber(totalOrders)} orders.`;
 
         return toolResult({
           summary,

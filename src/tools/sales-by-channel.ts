@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { runShopifyQL } from "../shopify-client.js";
+import { runShopifyQL, getStoreCurrency } from "../shopify-client.js";
 import { periodToClause, compareToClause } from "../utils/shopifyql-helpers.js";
 import { tableToObjects, formatMoney, toolResult, toolError } from "../utils/formatters.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -20,7 +20,7 @@ export function registerSalesByChannel(server: McpServer) {
 
         const query = `FROM sales SHOW sales_channel, total_sales, orders, average_order_value GROUP BY sales_channel ${dateClause} ${cmpClause} ${withClause} ORDER BY total_sales DESC`.trim();
 
-        const result = await runShopifyQL(query);
+        const [result, currency] = await Promise.all([runShopifyQL(query), getStoreCurrency()]);
         const rows = tableToObjects(result);
 
         if (rows.length === 0) {
@@ -34,7 +34,7 @@ export function registerSalesByChannel(server: McpServer) {
           const name = r.sales_channel as string;
           const sales = r.total_sales as number;
           const orders = r.orders as number;
-          return `${name}: ${formatMoney(sales)} (${orders} orders)`;
+          return `${name}: ${formatMoney(sales, currency)} (${orders} orders)`;
         });
 
         const summary = `Sales by channel (${period ?? "last 30 days"}):\n${channelLines.join("\n")}`;

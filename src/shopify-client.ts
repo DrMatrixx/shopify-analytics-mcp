@@ -131,3 +131,19 @@ export async function graphql<T = Record<string, unknown>>(
 ): Promise<T> {
   return makeRequest<T>(query, variables);
 }
+
+let cachedCurrency: string | null = null;
+
+export async function getStoreCurrency(): Promise<string> {
+  if (cachedCurrency) return cachedCurrency;
+
+  try {
+    const data = await graphql<{ shop: { currencyCode: string } }>(
+      `query { shop { currencyCode } }`
+    );
+    cachedCurrency = data.shop.currencyCode;
+    return cachedCurrency;
+  } catch {
+    return "USD";
+  }
+}

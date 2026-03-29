@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { graphql } from "../shopify-client.js";
+import { graphql, getStoreCurrency } from "../shopify-client.js";
 import { formatMoney, toolResult, toolError } from "../utils/formatters.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -121,7 +121,7 @@ export function registerOrderDetails(server: McpServer) {
           }
         `;
 
-        const data = await graphql<OrderSearchResponse>(gql);
+        const [data, currency] = await Promise.all([graphql<OrderSearchResponse>(gql), getStoreCurrency()]);
         const orders = data.orders.nodes;
 
         if (orders.length === 0) {
@@ -135,7 +135,7 @@ export function registerOrderDetails(server: McpServer) {
         const total = Number(o.totalPriceSet.shopMoney.amount);
         const itemCount = o.lineItems.nodes.reduce((sum, li) => sum + li.quantity, 0);
 
-        const summary = `Order ${o.name}: ${formatMoney(total)} (${o.displayFinancialStatus}, ${o.displayFulfillmentStatus}). ${itemCount} items. Customer: ${o.customer?.displayName ?? "Guest"}. Created: ${o.createdAt.split("T")[0]}.`;
+        const summary = `Order ${o.name}: ${formatMoney(total, currency)} (${o.displayFinancialStatus}, ${o.displayFulfillmentStatus}). ${itemCount} items. Customer: ${o.customer?.displayName ?? "Guest"}. Created: ${o.createdAt.split("T")[0]}.`;
 
         const detail = {
           id: o.id,

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { runShopifyQL } from "../shopify-client.js";
+import { runShopifyQL, getStoreCurrency } from "../shopify-client.js";
 import { periodToClause } from "../utils/shopifyql-helpers.js";
 import { tableToObjects, formatMoney, toolResult, toolError } from "../utils/formatters.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -15,6 +15,7 @@ export function registerRefundsSummary(server: McpServer) {
     async ({ period, group_by }) => {
       try {
         const dateClause = periodToClause(period ?? "last_30d");
+        const currency = await getStoreCurrency();
 
         if (group_by === "product") {
           const query = `FROM sales SHOW product_title, returns, orders GROUP BY product_title HAVING returns > 0 ${dateClause} ORDER BY returns DESC`;
@@ -30,7 +31,7 @@ export function registerRefundsSummary(server: McpServer) {
           }
 
           const top = rows[0];
-          const summary = `${rows.length} products had refunds (${period ?? "last 30 days"}). Highest: "${top.product_title}" with ${formatMoney(Math.abs(top.returns as number))} in refunds.`;
+          const summary = `${rows.length} products had refunds (${period ?? "last 30 days"}). Highest: "${top.product_title}" with ${formatMoney(Math.abs(top.returns as number), currency)} in refunds.`;
 
           return toolResult({
             summary,
@@ -57,7 +58,7 @@ export function registerRefundsSummary(server: McpServer) {
         const refunds = Math.abs((totals.returns as number) ?? 0);
         const refundRate = totalSales > 0 ? (refunds / totalSales) * 100 : 0;
 
-        const summary = `Refund summary (${period ?? "last 30 days"}): ${formatMoney(refunds)} in refunds (${refundRate.toFixed(1)}% of ${formatMoney(totalSales)} total sales). Net sales: ${formatMoney(netSales)}.`;
+        const summary = `Refund summary (${period ?? "last 30 days"}): ${formatMoney(refunds, currency)} in refunds (${refundRate.toFixed(1)}% of ${formatMoney(totalSales, currency)} total sales). Net sales: ${formatMoney(netSales, currency)}.`;
 
         return toolResult({
           summary,

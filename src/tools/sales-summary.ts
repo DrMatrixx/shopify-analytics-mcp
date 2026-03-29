@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { runShopifyQL } from "../shopify-client.js";
+import { runShopifyQL, getStoreCurrency } from "../shopify-client.js";
 import { periodToClause, compareToClause } from "../utils/shopifyql-helpers.js";
 import { tableToObjects, formatMoney, formatNumber, formatPct, toolResult, toolError } from "../utils/formatters.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -24,7 +24,7 @@ export function registerSalesSummary(server: McpServer) {
 
         const query = `FROM sales SHOW total_sales, net_sales, gross_sales, orders, average_order_value, taxes, discounts, returns ${dateClause} ${cmpClause} ${withClauses}`.trim();
 
-        const result = await runShopifyQL(query);
+        const [result, currency] = await Promise.all([runShopifyQL(query), getStoreCurrency()]);
         const rows = tableToObjects(result);
 
         if (rows.length === 0) {
@@ -46,7 +46,7 @@ export function registerSalesSummary(server: McpServer) {
         const discounts = (current.discounts as number) ?? 0;
         const returns = (current.returns as number) ?? 0;
 
-        let summary = `${period ?? "Last 7 days"}: ${formatMoney(totalSales)} revenue from ${formatNumber(orders)} orders (AOV ${formatMoney(aov)}). Net revenue after returns/discounts: ${formatMoney(netSales)}.`;
+        let summary = `${period ?? "Last 7 days"}: ${formatMoney(totalSales, currency)} revenue from ${formatNumber(orders)} orders (AOV ${formatMoney(aov, currency)}). Net revenue after returns/discounts: ${formatMoney(netSales, currency)}.`;
 
         const data: Record<string, unknown> = {
           period: period ?? "last_7d",

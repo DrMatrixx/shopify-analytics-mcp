@@ -58,11 +58,20 @@ function parseValue(value: unknown, dataType: string): unknown {
 }
 
 /**
- * Format a number as currency string.
+ * Format a number as currency string using the store's currency.
  */
-export function formatMoney(amount: unknown): string {
+export function formatMoney(amount: unknown, currencyCode = "USD"): string {
   const n = Number(amount) || 0;
-  return `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  try {
+    return n.toLocaleString("en-US", {
+      style: "currency",
+      currency: currencyCode,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  } catch {
+    return `${currencyCode} ${n.toFixed(2)}`;
+  }
 }
 
 /**
