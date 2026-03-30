@@ -17,13 +17,17 @@ import { registerDiscountPerformance } from "./tools/discount-performance.js";
 import { registerRefundsSummary } from "./tools/refunds-summary.js";
 import { registerSearchOrders } from "./tools/search-orders.js";
 import { registerRunShopifyQL } from "./tools/run-shopifyql.js";
+import { registerCustomerRfmSegments } from "./tools/customer-rfm-segments.js";
+import { registerCustomerChurnRisk } from "./tools/customer-churn-risk.js";
+import { registerCustomerLtvSummary } from "./tools/customer-ltv-summary.js";
+import { registerCustomerHealthReport } from "./tools/customer-health-report.js";
 
 const server = new McpServer({
   name: "shopify-analytics",
   version: "1.0.0",
 });
 
-// Register all 14 tools
+// Register all 18 tools
 registerSalesSummary(server);
 registerTopProducts(server);
 registerOrderTrends(server);
@@ -38,6 +42,10 @@ registerDiscountPerformance(server);
 registerRefundsSummary(server);
 registerSearchOrders(server);
 registerRunShopifyQL(server);
+registerCustomerRfmSegments(server);
+registerCustomerChurnRisk(server);
+registerCustomerLtvSummary(server);
+registerCustomerHealthReport(server);
 
 // Start the server with stdio transport
 const transport = new StdioServerTransport();

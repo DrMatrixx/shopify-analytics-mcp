@@ -108,6 +108,10 @@ If you have an existing custom app with a `shpat_` access token:
 | `get_refunds_summary` | Refund totals and rates, optionally by product | "What's our refund rate this month?" |
 | `search_orders` | Flexible order search with filters | "Show me all refunded orders from last week" |
 | `run_shopifyql` | Run any custom ShopifyQL query | "What are sales by day of week for the last quarter?" |
+| `get_customer_rfm_segments` | RFM segmentation: Champions, Loyal, At Risk, Lost | "Show me my customer segments" |
+| `get_customer_churn_risk` | Identify customers at risk of churning | "Which customers am I about to lose?" |
+| `get_customer_ltv_summary` | Customer lifetime value projections | "What's the lifetime value of my customers?" |
+| `get_customer_health_report` | Full customer health diagnosis with actions | "How are my customers doing?" |
 
 ## Example Conversations
 
@@ -142,6 +146,20 @@ If you have an existing custom app with a `shpat_` access token:
 > Found 4 orders matching "email:jane@example.com":
 > #1089: $245.00 — Jane Doe (PAID, FULFILLED)
 > ...
+
+**Customer health check:**
+> "How are my customers doing?"
+>
+> Customer health report (last 12 months): 342 customers, $89,450 total revenue.
+> 1 high-severity finding: 23 valuable customers at churn risk, representing $12,340 in historical spend.
+> 1 medium-severity finding: Top 10% of customers drive 52% of revenue.
+> Action: Reach out to your top at-risk customers immediately.
+
+**Churn risk:**
+> "Which customers am I about to lose?"
+>
+> 23 customers at churn risk, representing $12,340 in historical revenue.
+> Most valuable at-risk: Jane Doe ($2,450, 45 days overdue).
 
 ## How It Works
 

@@ -1,13 +1,14 @@
 {
   "name": "@scooperai/shopify-analytics-mcp",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "type": "module",
   "description": "Free Shopify analytics MCP server for Claude Desktop. Ask questions about your orders, products, customers, and inventory in natural language.",
   "bin": {
     "shopify-analytics-mcp": "./dist/index.js"
   },
   "scripts": {
-    "build": "tsc && chmod 755 dist/index.js"
+    "build": "tsc && chmod 755 dist/index.js",
+    "test": "vitest run"
   },
   "files": [
     "dist"
@@ -33,7 +34,8 @@
     "zod": "^3.25.0"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "typescript": "^5.0.0",
-    "@types/node": "^20.0.0"
+    "vitest": "^3.2.4"
   }
 }
