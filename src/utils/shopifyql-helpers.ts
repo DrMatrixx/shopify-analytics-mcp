@@ -12,6 +12,7 @@ const NAMED_PERIODS: Record<string, string> = {
   last_quarter: "DURING last_quarter",
   this_year: "DURING this_year",
   last_year: "DURING last_year",
+  last_12m: "SINCE -365d",
 };
 
 export function periodToClause(period?: string): string {
